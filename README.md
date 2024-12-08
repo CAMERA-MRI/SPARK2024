@@ -1,4 +1,4 @@
-![alt text](https://github.com/CAMERA-MRI/SPARK2024/blob/main/SPARK_banner1.png)
+![alt text](https://github.com/CAMERA-MRI/SPARK2024/tree/main/SPARK2024.png)
 
 # Sprint AI Training for African Medical Imaging Knowledge Translation (SPARK) Academy
 ## SPARK Github
