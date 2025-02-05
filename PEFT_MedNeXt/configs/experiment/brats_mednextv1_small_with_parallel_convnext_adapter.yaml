@@ -1,0 +1,82 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: brats
+  - override /model: mednextv1_small
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["brats_ssa", "mednextv1_small", "finetune_adapter","parallel_convnext_adapter"]
+
+seed: 12345
+
+trainer:
+  min_epochs: 1
+  max_epochs: 50
+  gradient_clip_val: 0.5
+  accelerator: gpu
+  # devices: [0]
+  log_every_n_steps: 1
+  # logger: True
+
+model:
+  net:
+    # mednextv1_small
+    _target_: src.models.components.mednext.MedNeXt_with_parallel_convnext_adapter.MedNeXtWithParallelAdapters # points to the MedNeXtWithParallelAdapters class in MedNeXt_with_parallel_conv_adapter.py file, which is under mednext folder
+    in_channels: 4
+    n_classes: 4
+    n_channels: 32
+    exp_r: 2
+    kernel_size: 3
+    deep_supervision: False
+    do_res: True
+    do_res_up_down: True
+    block_counts: [2,2,2,2,2,2,2,2,2]
+    
+
+data:
+  _target_: src.data.brats_datamodule.BratsDataModule
+  # data_dir: ${paths.data_dir}
+  data_dir: "C:\\Users\\lenovo\\BraTS2023_SSA_modified_structure\\stacked_subset"
+  batch_size: 1
+  num_workers: 0
+  # pin_memory: True
+
+logger:
+  wandb:
+    project: "BraTS_MedNeXt_Server"
+    tags: ${tags}
+    mode: "offline"
+    
+
+callbacks:
+  model_checkpoint:
+    dirpath: ${paths.output_dir}/checkpoints
+    monitor: val_score
+    filename: best-checkpoint
+    save_top_k: 3
+    mode: "max"
+    save_last: True
+
+  early_stopping:
+    monitor: val_score
+    min_delta: 0.001
+    patience: 20
+    mode: "max"
+    verbose: True
+
+
+# Adding ckpt_path, for resuming training or evaluation
+ckpt_path: null
+# ckpt_path: "C:\\Users\\lenovo\\Desktop\\logs_from_server\\logs_from_naami_server\\jolly-armadillo-5 - Copy\\best-checkpoint_spark_himal.ckpt"
+
+# Adding pretrained_ckpt_path for finetuning
+# ckpt_path_for_finetuning: "D:\\BrainHack\\hydra\\spark_himalaya_git\\logs\\train\\runs\\2024-07-12_13-26-22\\checkpoints\\best-checkpoint.ckpt"
+ckpt_path_for_finetuning: "C:\\Users\\lenovo\\Desktop\\logs_from_server\\logs_from_naami_server\\jolly-armadillo-5\\best-checkpoint_spark_himal.ckpt"

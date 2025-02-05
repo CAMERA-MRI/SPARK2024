@@ -1,0 +1,65 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: brats
+  - override /model: unet.yaml
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["brats", "unet", "SSA"]
+
+seed: 12345
+
+trainer:
+  min_epochs: 1
+  max_epochs: 3
+  gradient_clip_val: 0.5
+  accelerator: gpu
+  # devices: [0]
+  log_every_n_steps: 1
+  # logger: True
+
+model:
+  net:
+    spatial_dims: 3
+    in_channels: 4
+    out_channels: 4
+    channels: [16, 32, 64, 128, 256]
+    # channels: [64, 128, 256, 512, 1024]
+    strides: [2, 2, 2, 2]
+    norm: BATCH
+    dropout: 0.2
+
+data:
+  _target_: src.data.brats_datamodule.BratsDataModule
+  # data_dir: ${paths.data_dir}
+  data_dir: "/mnt/Enterprise2/shirshak/SPARK_BIJAY_CODE/Spark_Himalaya/stacked"
+  batch_size: 1
+  num_workers: 0
+  # pin_memory: True
+
+logger:
+  wandb:
+    project: "BraTS_SSA_UNet_Server"
+    tags: ${tags}
+    # name: ${experiment_name}
+    mode: "offline"
+    
+
+callbacks:
+  model_checkpoint:
+    dirpath: ${paths.output_dir}/checkpoints
+    monitor: val_score
+    filename: best-checkpoint
+    save_top_k: 1
+    mode: "max"
+    save_last: True
+
+  early_stopping: null

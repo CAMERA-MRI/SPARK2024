@@ -1,0 +1,41 @@
+_target_: src.models.brats_module_for_generating_predictions.BratsLitModuleG
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 0.002
+  weight_decay: 0.001 # L2 Penalty to prevent overfitting by penalizing large weights in the model
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _partial_: true
+  factor: 0.1 # Specifies the factor by which the learning rate will be reduced.
+  patience: 5 # If the monitored metric (i.e. val_score) is not increased in the 5 consecutive epochs, the learning_rate will be reduced by the specified factor
+
+net:
+  # mednextv1_small
+  _target_: src.models.components.mednext.MedNeXt.MedNeXt
+  in_channels: 4
+  n_classes: 4
+  n_channels: 32
+  exp_r: 2
+  kernel_size: 3
+  # deep_supervision: ds # network produces outputs at multiple scales
+  deep_supervision: False # The model will only create one output layer. The forward method will return a single tensor instead of list of tensors
+  do_res: True
+  do_res_up_down: True
+  block_counts: [2,2,2,2,2,2,2,2,2]
+
+
+# compile model for faster training with pytorch 2.0
+# compile: false
+
+
+# # Initialize the U-Net model
+# model = UNet(
+#     spatial_dims=3, # 3 for using 3D ConvNet and 3D Maxpooling
+#     in_channels=4, # since 4 modalities
+#     out_channels=4, # 4 sub-regions to segment
+#     channels=(16, 32, 64, 128, 256),
+#     strides=(2, 2, 2, 2)
+# )
